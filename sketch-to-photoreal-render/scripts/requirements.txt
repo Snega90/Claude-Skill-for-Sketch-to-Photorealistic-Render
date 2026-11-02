@@ -1,0 +1,5 @@
+# sketch-to-photoreal-render - Python 3.9 or newer.
+# The render path itself is standard library only (urllib); Pillow does padding, crop-back and sheets.
+pillow>=10.1
+# Optional: PDF input (page 1 is rasterised). AGPL-licensed. Without it, export page 1 as PNG.
+pymupdf

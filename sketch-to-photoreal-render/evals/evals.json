@@ -1,0 +1,97 @@
+{
+  "skill_name": "sketch-to-photoreal-render",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Render assets/test_sketch.png as a photoreal photograph of the villa. Call the view 'Test Villa'. Terracotta roof, white lime plaster, teak windows, late-afternoon sun.",
+      "expected_output": "Claude looks at the drawing, writes a brief (elements with positions and counts, finishes, a measurable framing caution first), runs render.py render with --out pointing to a scratch folder outside the skill folder, the four note fields and --brief but WITHOUT --spend-ok, gets the exit-3 estimate, and asks the user for an explicit yes quoting 1 image at 1K, up to 2 attempts, max about USD 0.268 (about INR 23), and says the drawing will be sent to Google's Gemini API. No billed call is made before the yes.",
+      "files": ["assets/test_sketch.png"],
+      "expectations": [
+        "No render.py command with --spend-ok is run before the user explicitly says yes",
+        "The message to the user states the image count (1), the tier (1K) and the cost (USD 0.134 per attempt, up to 2 attempts, about USD 0.268)",
+        "The tier is 1K; Claude does not propose 2K or 4K for the first pass",
+        "Claude tells the user the drawing is sent to Google's Gemini API before the first live call",
+        "A brief JSON with elements, finishes and cautions is written, and the cautions include a measurable framing anchor or a 'the result has failed if' test",
+        "Every render.py render command passes --out to a folder outside the skill folder",
+        "Claude never asks for, prints or writes the API key"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I have looked at the five 1K renders of the villa set and their sheets. Looks good, do them all in 4K.",
+      "expected_output": "Claude does not run upscale on the set. It explains that 4K approval is per image, not per batch - 'looks good' on a set is not approval - and asks the user to name the single image (by file name) to take to 4K, or runs render.py status to list the candidates, quoting the 4K price for one image (USD 0.24 per attempt, up to 2 attempts, max USD 0.48).",
+      "files": [],
+      "expectations": [
+        "No render.py upscale command is run in this turn",
+        "Claude explains that approval for 4K is per image, not per batch",
+        "Claude asks the user to name one specific image to take to 4K (or runs render.py status to list them) instead of choosing or inventing a file name",
+        "Claude states the 4K cost for that one image (USD 0.24 per attempt, max USD 0.48)",
+        "Claude does not propose running upscale on several files at once"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "The 1K render of view 02 looks a bit soft. Make it sharper.",
+      "expected_output": "Claude does not treat 'make it sharper' as 4K approval. It asks whether the user approves one exact file for a 4K re-render - asking which file, or running render.py status to list them, rather than guessing a name - and quotes the 4K price (USD 0.24 per attempt, max USD 0.48); or it offers a 1K revision if 'soft' means a defect such as blurred planting or depth of field. Then it waits for the answer.",
+      "files": [],
+      "expectations": [
+        "No render.py upscale --confirmed command is run in this turn",
+        "Claude says that 'make it sharper' is not approval for 4K, or asks explicitly whether the user approves one exact image for 4K",
+        "Claude asks which exact file is meant (or lists the files with render.py status) and states the 4K price; it does not invent a file name",
+        "Claude does not raise --attempts or re-render at 4K as an edit"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Without spending anything (dry runs only, in a scratch output folder): render assets/test_sketch.png as view 'Test Villa', then revise that render so the flat roof of the right-hand wing becomes a planted green roof. Show me the revision's comparison sheet.",
+      "expected_output": "Claude runs render.py render --dry-run (view 'Test Villa', scratch --out outside the skill folder), then render.py revise on 'Test Villa_1K.png' with the one change in --notes and --dry-run. The revision stays at the 1K draft tier and is written as 'Test Villa_1K_rev02.png'. Its sheet pairs the image being revised against the new file (BEFORE · Test Villa_1K / AFTER · Test Villa_1K_rev02). Claude opens that sheet, reviews it with the checklist, and says the right side is a dry-run stand-in.",
+      "files": ["assets/test_sketch.png"],
+      "expectations": [
+        "The revision is made with render.py revise on 'Test Villa_1K.png' (the image being revised), not with a second render from the drawing",
+        "The revision stays at 1K: no --size 2K, no IMAGE_SIZE=4K, no upscale",
+        "The revise notes contain only the one requested change",
+        "The revision's sheet has 'Test Villa_1K' as the before and 'Test Villa_1K_rev02' as the after",
+        "Claude opens the revision sheet and states a verdict (match, minor or major) or says it is a stand-in, before reporting",
+        "No command uses --spend-ok"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Before my first render, check that the render setup on this machine works. (Run this eval with GOOGLE_API_KEY and GEMINI_API_KEY unset and no .env file.)",
+      "expected_output": "Claude runs the free render.py check, which reports the Python, Pillow and PyMuPDF versions, the sheet font and the model, and 'key : NOT FOUND' followed by the steps to set the key. Claude tells the user to set GOOGLE_API_KEY themselves as a user environment variable (Windows Environment Variables dialog or PowerShell SetEnvironmentVariable; export in ~/.zshrc or ~/.bashrc on macOS/Linux), to restart Claude Code and run render.py check again. It never asks the user to paste the key into the chat, never offers to write it into a file, and runs no render.",
+      "files": [],
+      "expectations": [
+        "Claude runs render.py check (or check --online), and no render, revise, patch or upscale command",
+        "Claude does not ask the user to paste or share the API key in the chat",
+        "Claude gives steps to set GOOGLE_API_KEY as a user environment variable",
+        "Claude says to restart Claude Code (or the terminal) and run render.py check again",
+        "Claude does not write a key into any file or command line itself"
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "Render assets/test_sketch.png for a project that uses no terracotta anywhere: the main block keeps its hipped roof but in dark charcoal slate, and the right-hand wing's flat roof is a concrete slab with a thin fascia. Black lime plaster, teak louvres, dry-season mid-morning light. Show me the prompt before spending anything.",
+      "expected_output": "Claude writes a brief that keeps the roofs as drawn: the main block's hipped roof in dark charcoal slate (no clay tiles) and a caution that the wing is one storey with a FLAT slab roof - no tiles, no pitch. It names the real roof finishes, runs render.py render with --no-terracotta-example, the brief, the notes and --prompt-only (with --out outside the skill folder), and shows the user the prompt: the fidelity brief's positive terracotta example is gone, and terracotta appears at most inside a negated caution. Then it quotes the 1K cost and waits for a yes.",
+      "files": ["assets/test_sketch.png"],
+      "expectations": [
+        "The render command includes --no-terracotta-example",
+        "The brief or notes contain a flat-roof caution for the wing (one storey, flat slab, no tiles, no pitch) and name the slate and slab roof finishes",
+        "The brief keeps the main block's hipped roof as drawn; it does not flatten or re-solve it",
+        "A --prompt-only run is made, and the prompt shown no longer contains the fidelity brief's clause 'terracotta roof tiles with true clay colour variation and weathering'; any remaining mention of terracotta is only inside a negative caution",
+        "No --spend-ok run happens before the user says yes"
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "Before we spend anything, test the pipeline on assets/test_sketch.png without calling the API, and show me the comparison sheet.",
+      "expected_output": "Claude runs render.py render on the test sketch with --dry-run and a scratch --out folder outside the skill folder. No key is read and no API call is made; the stamped 'DRY RUN' stand-in goes through the real crop-back and sheet path, writing '<view>_1K.png' and '_Before After - <view>_1K.jpg'. Claude opens the sheet, says the right side is a stand-in, not a render, and that the aspect ratio held.",
+      "files": ["assets/test_sketch.png"],
+      "expectations": [
+        "The render command uses --dry-run and not --spend-ok",
+        "No API key is requested or read for this test",
+        "A comparison sheet '_Before After - <view>_1K.jpg' is produced and Claude opens it",
+        "Claude makes clear the right-hand image is a stamped dry-run stand-in, not a real render"
+      ]
+    }
+  ]
+}
